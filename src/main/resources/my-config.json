@@ -1,0 +1,10 @@
+{
+  "port": 8888,
+  "location": "C:\\uploads\\",
+  "addresses": {
+    "upload": "upload.file",
+    "download": "download.file",
+    "allFiles": "give.allfiles"
+  },
+  "S3bucketName": "shasheejvertfilebuck"
+}
