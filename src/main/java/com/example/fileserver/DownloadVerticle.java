@@ -33,59 +33,44 @@ public class DownloadVerticle extends AbstractVerticle {
           String fileName = hdl.body().toString();
           String filePath = config().getString("location") + fileName;
 
-          String bucket_name = config().getString("S3bucketName");
-          String key_name = fileName;
+          String bucketName = config().getString("S3bucketName");
+          String keyName = fileName;
 
-          System.out.format("Downloading %s from S3 bucket %s...\n", key_name, bucket_name);
+          System.out.format("Downloading %s from S3 bucket %s...\n", keyName, bucketName);
           final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
           try {
-            S3Object o = s3.getObject(bucket_name, key_name);
-            S3ObjectInputStream s3is = o.getObjectContent();
-            File sf = new File(key_name);
-            byte[] fileData = Files.readAllBytes(sf.toPath());
+            S3Object s3Object = s3.getObject(bucketName, keyName);
+            S3ObjectInputStream s3is = s3Object.getObjectContent();
+            File outputFile = new File(filePath);
+
+            // Create parent directories if they do not exist
+            outputFile.getParentFile().mkdirs();
+
+            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+              byte[] readBuf = new byte[1024];
+              int readLen;
+              while ((readLen = s3is.read(readBuf)) > 0) {
+                fos.write(readBuf, 0, readLen);
+              }
+            }
+
+            byte[] fileData = Files.readAllBytes(outputFile.toPath());
 
             // Send the file data back as a reply to the request
             hdl.reply(fileData);
-//            System.out.println(sf.getName());
-//            System.out.println(sf.length());
-//            FileOutputStream fos = new FileOutputStream(new File(key_name));
-//            System.out.println(fos.toString());
 
-            // Send the file data back as a reply to the request
-//            hdl.reply(fileData);
-//            byte[] read_buf = new byte[1024];
-//            int read_len = 0;
-//            while ((read_len = s3is.read(read_buf)) > 0) {
-//              fos.write(read_buf, 0, read_len);
-//            }
+            log.info("File downloaded successfully");
             s3is.close();
-//            fos.close();
           } catch (AmazonServiceException e) {
-            log.error("Amazon exception {}",e.getErrorMessage());
-            hdl.fail(404,"file not found");
-//            System.exit(1);
+            log.error("Amazon exception: {}", e.getErrorMessage());
+            hdl.fail(404, "File not found");
           } catch (FileNotFoundException e) {
-            log.error("file not found exception {}",e.getMessage());
-            hdl.fail(404,"file not found");
-//            System.exit(1);
+            log.error("File not found exception: {}", e.getMessage());
+            hdl.fail(404, "File not found");
           } catch (IOException e) {
-        log.error("IO exception {}",e.getMessage());
-            hdl.fail(404,"file not found");
-//            System.exit(1);
+            log.error("IO exception: {}", e.getMessage());
+            hdl.fail(404, "File not found");
           }
-          log.info("file download successfully");
-
-//          vertx.fileSystem().readFile(filePath, result -> {
-//            if (result.succeeded()) {
-//              byte[] fileData = result.result().getBytes();
-//
-//              // Send the file data back as a reply to the request
-//              hdl.reply(fileData);
-//            } else {
-//              log.error("error occured");
-//              hdl.fail(404, "File not found");
-//            }
-//          });
 
         });
       }
