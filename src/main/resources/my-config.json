@@ -1,6 +1,6 @@
 {
   "port": 8888,
-  "location": "C:\\uploads\\",
+  "location": "/home/ec2-user/uploads/",
   "addresses": {
     "upload": "upload.file",
     "download": "download.file",
