@@ -61,15 +61,15 @@ public class DownloadVerticle extends AbstractVerticle {
             s3is.close();
 //            fos.close();
           } catch (AmazonServiceException e) {
-            System.err.println(e.getErrorMessage());
+            log.error("Amazon exception {}",e.getErrorMessage());
             hdl.fail(404,"file not found");
 //            System.exit(1);
           } catch (FileNotFoundException e) {
-            System.err.println(e.getMessage());
+            log.error("file not found exception {}",e.getMessage());
             hdl.fail(404,"file not found");
 //            System.exit(1);
           } catch (IOException e) {
-            System.err.println(e.getMessage());
+        log.error("IO exception {}",e.getMessage());
             hdl.fail(404,"file not found");
 //            System.exit(1);
           }
